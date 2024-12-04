@@ -8,6 +8,7 @@ import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import App from './App';
+import { Toaster } from './components/ui/toaster';
 import { config } from './config/wagmi';
 
 const queryClient = new QueryClient()
@@ -18,6 +19,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <WagmiProvider config={config}>
         <RainbowKitProvider>
           <App />
+          <Toaster />
         </RainbowKitProvider>
       </WagmiProvider>
     </QueryClientProvider>
