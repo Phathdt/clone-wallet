@@ -17,6 +17,36 @@ const WALLET_TO_CONNECTOR: Record<WalletKey, string> = {
   okx: 'okx',
 }
 
+const isMobile = () => {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+}
+
+const getWalletDeepLink = (walletKey: WalletKey, dappUrl: string) => {
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const isAndroid = /Android/i.test(navigator.userAgent)
+
+  switch (walletKey) {
+    case 'metamask':
+      if (isIOS) {
+        return `metamask://dapp/${dappUrl}`
+      }
+      if (isAndroid) {
+        return `https://metamask.app.link/dapp/${dappUrl}`
+      }
+      return null
+    case 'okx':
+      if (isIOS) {
+        return `okex://dapp/${dappUrl}`
+      }
+      if (isAndroid) {
+        return `https://www.okx.com/web3/connect/${dappUrl}`
+      }
+      return null
+    default:
+      return null
+  }
+}
+
 export const useWallet = () => {
   const [connections, setConnections] = useState<Map<string, WalletConnection>>(
     new Map()
@@ -69,11 +99,50 @@ export const useWallet = () => {
     [connectors]
   )
 
+  const handleMobileWallet = useCallback((walletKey: WalletKey) => {
+    const dappUrl = window.location.host
+    const deepLink = getWalletDeepLink(walletKey, dappUrl)
+
+    if (deepLink) {
+      // If wallet is not installed, redirect to app store
+      const hasWallet =
+        walletKey === 'metamask' ? 'ethereum' in window : 'okxwallet' in window
+
+      if (!hasWallet) {
+        if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+          window.location.href =
+            walletKey === 'metamask'
+              ? 'https://apps.apple.com/us/app/metamask/id1438144202'
+              : 'https://apps.apple.com/us/app/okx-buy-bitcoin-eth-crypto/id1327268470'
+        } else {
+          window.location.href =
+            walletKey === 'metamask'
+              ? 'https://play.google.com/store/apps/details?id=io.metamask'
+              : 'https://play.google.com/store/apps/details?id=com.okex.wallet'
+        }
+        return true
+      }
+
+      // If wallet is installed, use deep link
+      window.location.href = deepLink
+      return true
+    }
+    return false
+  }, [])
+
   const connect = useCallback(
     async (networkId: string, walletKey: string, networkInfo: INetwork) => {
       try {
         setError(null)
         setIsConnecting(true)
+
+        // Handle mobile first
+        if (isMobile()) {
+          const handled = handleMobileWallet(walletKey as WalletKey)
+          if (handled) {
+            return
+          }
+        }
 
         if (networkInfo.type === NetworkType.EVM) {
           const connector = getConnectorByWallet(walletKey as WalletKey)
@@ -86,7 +155,6 @@ export const useWallet = () => {
             isEvmConnected && currentConnector?.id === connector.id
 
           if (isAlreadyConnectedWithSameWallet) {
-            // Ensure connector has switchChain method
             if (typeof connector.switchChain !== 'function') {
               throw new Error('Wallet does not support switching chains')
             }
@@ -95,7 +163,6 @@ export const useWallet = () => {
               const chainId = parseInt(networkInfo.chainId)
               await connector.switchChain({ chainId })
 
-              // Update local state after successful chain switch
               if (evmAddress) {
                 setConnections((prev) =>
                   new Map(prev).set(networkId, {
@@ -111,7 +178,6 @@ export const useWallet = () => {
             }
           }
 
-          // If not connected or different wallet, connect normally
           await connectEvm({
             connector,
             chainId: parseInt(networkInfo.chainId),
@@ -119,7 +185,6 @@ export const useWallet = () => {
 
           localStorage.setItem('wallet.selected', connector.uid)
         } else {
-          // Handle non-EVM connection through wallet service
           const result = await walletService.connect(
             networkId as NetworkId,
             walletKey as WalletKey,
@@ -143,7 +208,13 @@ export const useWallet = () => {
         setIsConnecting(false)
       }
     },
-    [connectEvm, getConnectorByWallet, isEvmConnected, evmAddress]
+    [
+      connectEvm,
+      getConnectorByWallet,
+      isEvmConnected,
+      evmAddress,
+      handleMobileWallet,
+    ]
   )
 
   const disconnect = useCallback(
