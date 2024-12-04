@@ -19,7 +19,7 @@ export class OKXWallet extends BaseWallet {
     base: base,
   }
 
-  async connect(network: string, options: IWalletConnectOptions) {
+  async connect(_network: string, options: IWalletConnectOptions) {
     if (options.network.type === NetworkType.BITCOIN) {
       return this.connectBitcoin(options)
     }
@@ -175,7 +175,7 @@ export class OKXWallet extends BaseWallet {
     }
   }
 
-  async getCompressedPublicKey(network?: string): Promise<string> {
+  async getCompressedPublicKey(_network?: string): Promise<string> {
     if (!window.okxwallet?.bitcoin) {
       throw new Error('OKX Wallet Bitcoin provider not found')
     }
@@ -185,7 +185,7 @@ export class OKXWallet extends BaseWallet {
 
   async signPsbt(
     psbt: string,
-    network: string,
+    _network: string,
     options?: PsbtSignOptions
   ): Promise<string> {
     if (!window.okxwallet?.bitcoin) {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -11,7 +12,10 @@ export function shortenAddress(address: string, chars = 4): string {
   )}`
 }
 
-export function isValidAddress(address: string, networkType: string): boolean {
+export function isValidAddress(
+  _address: string,
+  _networkType: string
+): boolean {
   // Add validation logic based on network type
   return true
 }

@@ -17,7 +17,7 @@ export class MetaMaskWallet extends BaseWallet {
     base: base,
   }
 
-  async connect(network: string, options: IWalletConnectOptions) {
+  async connect(_network: string, options: IWalletConnectOptions) {
     if (!this.isInstalled()) {
       throw new Error('MetaMask is not installed')
     }
@@ -106,14 +106,14 @@ export class MetaMaskWallet extends BaseWallet {
     return signature
   }
 
-  async getCompressedPublicKey(network?: string): Promise<string> {
+  async getCompressedPublicKey(_network?: string): Promise<string> {
     throw new Error('Compressed public key not supported for EVM wallets')
   }
 
   async signPsbt(
-    psbt: string,
-    network: string,
-    options?: PsbtSignOptions
+    _psbt: string,
+    _network: string,
+    _options?: PsbtSignOptions
   ): Promise<string> {
     throw new Error('PSBT signing not supported for EVM wallets')
   }
