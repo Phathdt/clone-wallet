@@ -13,6 +13,8 @@ import { config } from './config/wagmi';
 
 const queryClient = new QueryClient()
 
+import('eruda').then((eruda) => eruda.default.init())
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
