@@ -81,16 +81,43 @@ export const useWallet = () => {
             throw new Error(`No connector found for wallet ${walletKey}`)
           }
 
-          // Connect using RainbowKit/wagmi
+          const currentConnector = getActiveConnector()
+          const isAlreadyConnectedWithSameWallet =
+            isEvmConnected && currentConnector?.id === connector.id
+
+          if (isAlreadyConnectedWithSameWallet) {
+            // Ensure connector has switchChain method
+            if (typeof connector.switchChain !== 'function') {
+              throw new Error('Wallet does not support switching chains')
+            }
+
+            try {
+              const chainId = parseInt(networkInfo.chainId)
+              await connector.switchChain({ chainId })
+
+              // Update local state after successful chain switch
+              if (evmAddress) {
+                setConnections((prev) =>
+                  new Map(prev).set(networkId, {
+                    address: evmAddress,
+                    network: networkInfo,
+                    walletKey,
+                  })
+                )
+              }
+              return
+            } catch (switchError) {
+              throw new Error(`Failed to switch chain: ${switchError}`)
+            }
+          }
+
+          // If not connected or different wallet, connect normally
           await connectEvm({
             connector,
             chainId: parseInt(networkInfo.chainId),
           })
 
-          // Save selected wallet after successful connection
           localStorage.setItem('wallet.selected', connector.uid)
-
-          // Connection state will be updated by the useEffect above
         } else {
           // Handle non-EVM connection through wallet service
           const result = await walletService.connect(
@@ -106,9 +133,6 @@ export const useWallet = () => {
               walletKey,
             })
           )
-
-          // Save selected wallet for non-EVM too if needed
-          localStorage.setItem('wallet.selected', walletKey)
         }
       } catch (err) {
         const errorMessage =
@@ -119,7 +143,7 @@ export const useWallet = () => {
         setIsConnecting(false)
       }
     },
-    [connectEvm, getConnectorByWallet]
+    [connectEvm, getConnectorByWallet, isEvmConnected, evmAddress]
   )
 
   const disconnect = useCallback(
