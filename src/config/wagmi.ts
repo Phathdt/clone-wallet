@@ -1,10 +1,11 @@
-import { base, mainnet } from 'viem/chains'
+import { base, baseSepolia, mainnet } from 'viem/chains'
 import { createConfig, http } from 'wagmi'
 
 import { connectorsForWallets } from '@rainbow-me/rainbowkit'
 import {
   metaMaskWallet,
   okxWallet,
+  phantomWallet,
   walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets'
 
@@ -14,7 +15,7 @@ const connectors = connectorsForWallets(
   [
     {
       groupName: 'Recommended',
-      wallets: [metaMaskWallet, okxWallet, walletConnectWallet],
+      wallets: [metaMaskWallet, okxWallet, phantomWallet, walletConnectWallet],
     },
   ],
   {
@@ -25,9 +26,10 @@ const connectors = connectorsForWallets(
 
 export const config = createConfig({
   connectors,
-  chains: [mainnet, base],
+  chains: [mainnet, base, baseSepolia],
   transports: {
     [mainnet.id]: http(),
     [base.id]: http(),
+    [baseSepolia.id]: http(),
   },
 })

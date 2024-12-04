@@ -21,12 +21,14 @@ import { WalletButton } from '@rainbow-me/rainbowkit'
 
 const SUPPORTED_CHAINS = [
   { id: 1, name: 'Ethereum Mainnet' },
+  { id: 84532, name: 'Base Sepolia' },
   { id: 8453, name: 'Base' },
 ] as const
 
 const SUPPORTED_WALLETS = [
   { id: 'okx', name: 'OKX Wallet' },
   { id: 'metaMask', name: 'MetaMask' },
+  { id: 'phantom', name: 'Phantom' },
 ] as const
 
 const WalletConnector = () => {
