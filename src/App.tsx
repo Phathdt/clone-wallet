@@ -1,8 +1,8 @@
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from '@/components/ui/toaster'
 
-import ListConnectors from './components/wallet/ListConnectors';
-import WalletConnector from './components/wallet/WalletConnector';
-import WalletSign from './components/wallet/WalletSign';
+import ListConnectors from './components/wallet/ListConnectors'
+import WalletConnector from './components/wallet/WalletConnector'
+import WalletSign from './components/wallet/WalletSign'
 
 function App() {
   return (
@@ -10,6 +10,9 @@ function App() {
       <div className="container mx-auto max-w-6xl">
         <header className="py-6">
           <h1 className="text-2xl font-bold">Multi-Chain Wallet</h1>
+          <h1 className="text-2xl font-bold">
+            {import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID}
+          </h1>
         </header>
 
         <main>
