@@ -1,6 +1,7 @@
 import { Toaster } from '@/components/ui/toaster';
-import WalletConnector from '@/components/wallet/WalletConnector';
 
+import ListConnectors from './components/wallet/ListConnectors';
+import WalletConnector from './components/wallet/WalletConnector';
 import WalletSign from './components/wallet/WalletSign';
 
 function App() {
@@ -15,6 +16,8 @@ function App() {
           <WalletConnector />
 
           <WalletSign />
+
+          <ListConnectors />
         </main>
       </div>
       <Toaster />

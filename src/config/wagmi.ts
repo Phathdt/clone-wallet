@@ -1,13 +1,30 @@
-import { http } from 'viem';
-import { base, mainnet } from 'viem/chains';
+import { base, mainnet } from 'viem/chains'
+import { createConfig, http } from 'wagmi'
 
-import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { connectorsForWallets } from '@rainbow-me/rainbowkit'
+import {
+  metaMaskWallet,
+  okxWallet,
+  walletConnectWallet,
+} from '@rainbow-me/rainbowkit/wallets'
 
 const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID
 
-export const config = getDefaultConfig({
-  appName: 'Multi Chain Wallet',
-  projectId,
+const connectors = connectorsForWallets(
+  [
+    {
+      groupName: 'Recommended',
+      wallets: [metaMaskWallet, okxWallet, walletConnectWallet],
+    },
+  ],
+  {
+    appName: 'Multi Chain Wallet',
+    projectId: projectId,
+  }
+)
+
+export const config = createConfig({
+  connectors,
   chains: [mainnet, base],
   transports: {
     [mainnet.id]: http(),
