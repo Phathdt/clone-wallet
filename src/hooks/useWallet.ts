@@ -28,18 +28,36 @@ const getWalletDeepLink = (walletKey: WalletKey, dappUrl: string) => {
   switch (walletKey) {
     case 'metamask':
       if (isIOS) {
-        return `metamask://dapp/${dappUrl}`
+        return {
+          deepLink: `metamask://dapp/${dappUrl}`,
+          universalLink: `https://metamask.app.link/dapp/${dappUrl}`,
+          appStore: 'https://apps.apple.com/us/app/metamask/id1438144202',
+        }
       }
       if (isAndroid) {
-        return `https://metamask.app.link/dapp/${dappUrl}`
+        return {
+          deepLink: `metamask://dapp/${dappUrl}`,
+          universalLink: `https://metamask.app.link/dapp/${dappUrl}`,
+          appStore: 'https://play.google.com/store/apps/details?id=io.metamask',
+        }
       }
       return null
     case 'okx':
       if (isIOS) {
-        return `okex://dapp/${dappUrl}`
+        return {
+          deepLink: `okex://dapp/${dappUrl}`,
+          universalLink: `https://www.okx.com/download`,
+          appStore:
+            'https://apps.apple.com/us/app/okx-buy-bitcoin-eth-crypto/id1327268470',
+        }
       }
       if (isAndroid) {
-        return `https://www.okx.com/web3/connect/${dappUrl}`
+        return {
+          deepLink: `okx://dapp/${dappUrl}`,
+          universalLink: `https://www.okx.com/web3/connect/${dappUrl}`,
+          appStore:
+            'https://play.google.com/store/apps/details?id=com.okex.wallet',
+        }
       }
       return null
     default:
@@ -101,33 +119,45 @@ export const useWallet = () => {
 
   const handleMobileWallet = useCallback((walletKey: WalletKey) => {
     const dappUrl = window.location.host
-    const deepLink = getWalletDeepLink(walletKey, dappUrl)
+    const links = getWalletDeepLink(walletKey, dappUrl)
 
-    if (deepLink) {
-      // If wallet is not installed, redirect to app store
-      const hasWallet =
-        walletKey === 'metamask' ? 'ethereum' in window : 'okxwallet' in window
+    if (!links) return false
 
-      if (!hasWallet) {
-        if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-          window.location.href =
-            walletKey === 'metamask'
-              ? 'https://apps.apple.com/us/app/metamask/id1438144202'
-              : 'https://apps.apple.com/us/app/okx-buy-bitcoin-eth-crypto/id1327268470'
-        } else {
-          window.location.href =
-            walletKey === 'metamask'
-              ? 'https://play.google.com/store/apps/details?id=io.metamask'
-              : 'https://play.google.com/store/apps/details?id=com.okinc.okex.gp'
+    // Thử mở deep link trước
+    const openApp = () => {
+      // Set timeout để redirect sang app store nếu không mở được app
+      const timeout = setTimeout(() => {
+        window.location.href = links.appStore
+      }, 3000)
+
+      // Lắng nghe sự kiện visibility change để clear timeout
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
+          clearTimeout(timeout)
         }
-        return true
       }
+      document.addEventListener('visibilitychange', handleVisibilityChange)
 
-      // If wallet is installed, use deep link
-      window.location.href = deepLink
-      return true
+      // Thử mở app
+      window.location.href = links.deepLink
+
+      // Cleanup
+      return () => {
+        clearTimeout(timeout)
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+      }
     }
-    return false
+
+    // Thử universal link trước, fallback về deep link
+    try {
+      window.location.href = links.universalLink
+      setTimeout(openApp, 1000) // Fallback sau 1s nếu universal link không hoạt động
+    } catch (err) {
+      console.log('🚀 ~ handleMobileWal ~ err:', err)
+      openApp()
+    }
+
+    return true
   }, [])
 
   const connect = useCallback(
