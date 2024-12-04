@@ -70,14 +70,21 @@ const WalletConnector = () => {
 
   const handleConnect = async () => {
     try {
-      const connector = connectors.find((c) => c.name === 'MetaMask')
+      // Tìm WalletConnect connector trước
+      let connector = connectors.find((c) => c.name === 'WalletConnect')
+
+      // Nếu không có WalletConnect, thử tìm MetaMask
+      if (!connector) {
+        connector = connectors.find((c) => c.name === 'MetaMask')
+      }
+
       if (connector) {
         connect({ connector })
       } else {
         toast({
           variant: 'destructive',
           title: 'Connection Error',
-          description: 'MetaMask not found. Please install MetaMask.',
+          description: 'No compatible wallet connector found',
         })
       }
     } catch (error) {
