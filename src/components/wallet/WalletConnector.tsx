@@ -1,5 +1,11 @@
 import { useState } from 'react'
-import { useAccount, useDisconnect, useSwitchChain } from 'wagmi'
+import {
+  Connector,
+  useAccount,
+  useConnect,
+  useDisconnect,
+  useSwitchChain,
+} from 'wagmi'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -35,6 +41,7 @@ const WalletConnector = () => {
   const { toast } = useToast()
   const [selectedWallet, setSelectedWallet] = useState<string>()
   const { isConnected, address } = useAccount()
+  const { connectAsync } = useConnect()
 
   const { disconnect } = useDisconnect({
     mutation: {
@@ -47,28 +54,32 @@ const WalletConnector = () => {
     },
   })
 
-  const { switchChain, isPending: isSwitching } = useSwitchChain({
-    mutation: {
-      onSuccess(data) {
-        toast({
-          title: 'Network Changed',
-          description: `Switched to ${
-            data?.name || 'new network'
-          } successfully`,
-        })
-      },
-      onError(error) {
-        toast({
-          variant: 'destructive',
-          title: 'Error switching network',
-          description: error.message,
-        })
-      },
-    },
-  })
+  const { switchChain, isPending: isSwitching } = useSwitchChain()
 
   const handleNetworkChange = (chainId: string) => {
     switchChain({ chainId: Number(chainId) })
+  }
+
+  const handleConnect = async (connector: Connector) => {
+    if (!selectedWallet) return
+    try {
+      await connectAsync({ connector: connector })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error?.code === 4001) {
+        toast({
+          variant: 'destructive',
+          title: 'Connection Rejected',
+          description: 'You rejected the wallet connection request',
+        })
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Connection Failed',
+          description: error?.message || 'Failed to connect wallet',
+        })
+      }
+    }
   }
 
   return (
@@ -127,11 +138,11 @@ const WalletConnector = () => {
             selectedWallet && (
               <div className="w-full">
                 <WalletButton.Custom wallet={selectedWallet}>
-                  {({ ready, connect }) => (
+                  {({ ready, connector }) => (
                     <Button
                       type="button"
                       disabled={!ready}
-                      onClick={connect}
+                      onClick={() => handleConnect(connector)}
                       className="w-full"
                     >
                       Connect Wallet
