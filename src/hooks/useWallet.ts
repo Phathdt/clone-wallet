@@ -118,7 +118,7 @@ export const useWallet = () => {
           window.location.href =
             walletKey === 'metamask'
               ? 'https://play.google.com/store/apps/details?id=io.metamask'
-              : 'https://play.google.com/store/apps/details?id=com.okex.wallet'
+              : 'https://play.google.com/store/apps/details?id=com.okinc.okex.gp'
         }
         return true
       }
